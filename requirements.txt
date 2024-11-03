@@ -1,0 +1,6 @@
+streamlit
+pandas
+selenium
+bs4
+openai
+ExcelWriter
