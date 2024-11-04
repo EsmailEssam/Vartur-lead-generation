@@ -18,10 +18,6 @@ if st.button("Generate"):
                 # Process the URL
                 text_result, dataframe_result = scraper(url)
 
-                # Display the Post Content
-                st.write("Post Content:")
-                st.write(text_result)
-
                 # Display the DataFrame as a table
                 st.write("Potential Leads:")
                 st.dataframe(dataframe_result)
