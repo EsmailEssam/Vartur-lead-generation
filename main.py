@@ -10,6 +10,11 @@ st.title("Social Media Lead Generation")
 # Sidebar for settings with radio buttons
 st.sidebar.title("Settings")
 lead_filter = st.sidebar.radio("Choose a Platform", ["LinkedIn", "Instagram", "X"])
+st.title("Social Media Lead Generation")
+
+# Sidebar for settings with radio buttons
+st.sidebar.title("Settings")
+lead_filter = st.sidebar.radio("Choose a Platform", ["LinkedIn", "Instagram", "X"])
 
 # Input URL from user
 
