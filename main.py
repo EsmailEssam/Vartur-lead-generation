@@ -33,7 +33,21 @@ if lead_filter == "LinkedIn":
 
                 # Display the DataFrame as a table
                 st.markdown("### Potential Leads:")
-                st.dataframe(dataframe_result.style.highlight_max(axis=0))
+                st.dataframe(dataframe_result)
+                
+                st.markdown("### Analysis")
+                tab1, tab2, tab3 = st.tabs(["Pie Chart", "Histogram", "Bar Chart"])
+
+                with tab1:
+                    fig = px.pie(dataframe_result, names="Is Lead")
+                    st.plotly_chart(fig, use_container_width=True)
+
+                with tab2:
+                    st.info("Histogram is coming soon!")
+                
+                with tab3:
+                    st.info("Bar Chart is coming soon!")
+                        
 
                 # Download button for CSV file
                 def convert_df_to_csv(df):
