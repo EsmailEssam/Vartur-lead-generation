@@ -1,59 +1,71 @@
 import streamlit as st
 import pandas as pd
-from io import BytesIO
-from helper.scrap import scraper
+from io import StringIO
+from helper.scrap import scraper  # Ensure your scraper function returns the DataFrame as described
 
 # Streamlit app code
 st.title("Social Media Lead Generation")
+st.divider()
+
 
 # Sidebar for settings with radio buttons
 st.sidebar.title("Platforms")
 lead_filter = st.sidebar.radio("Choose a Platform", ["LinkedIn", "Instagram", "X"])
 
-url = st.text_input("Enter a Post URL:")
+# Input fields for LinkedIn credentials
+st.markdown("### LinkedIn Login")
+email = st.text_input("Email")
+password = st.text_input("Password", type="password")
+
+# Input URL from user
+url = st.text_input("Enter a LinkedIn Post URL:")
+
+# Generate button
 generate_button = st.button("Generate")
 
-
+# LinkedIn lead generation logic
 if lead_filter == "LinkedIn":
-    if generate_button:
-        if url:
-            with st.spinner('Processing...'):
-                try:
-                    text_result, dataframe_result = scraper(url)
+    if url and email and password and generate_button:
+        with st.spinner('Processing...'):
+            try:
+                # Pass the user credentials and URL to scraper function
+                dataframe_result = scraper(url, email, password)
 
-                    # Display the DataFrame as a table
-                    st.markdown("### Potential Leads:")
-                    st.dataframe(dataframe_result.style.highlight_max(axis=0))
+                # Display the DataFrame as a table
+                st.markdown("### Potential Leads:")
+                st.dataframe(dataframe_result.style.highlight_max(axis=0))
 
-                    # Download button for the DataFrame
-                    def convert_df_to_xlsx(df):
-                        output = BytesIO()
-                        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                            df.to_excel(writer, index=False, sheet_name='Sheet1')
-                        return output.getvalue()
+                # Download button for CSV file
+                def convert_df_to_csv(df):
+                    output = StringIO()
+                    df.to_csv(output, index=False)
+                    return output.getvalue()
 
-                    xlsx_data = convert_df_to_xlsx(dataframe_result)
+                csv_data = convert_df_to_csv(dataframe_result)
 
-                    # Show download button
-                    st.download_button(
-                        label="Download as XLSX",
-                        data=xlsx_data,
-                        file_name="dataframe_result.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
-                except Exception as e:
-                    st.error(f"Error processing URL: {e}")
-        else:
-            st.warning("Please enter a URL.")
+                # Show download button for CSV
+                st.download_button(
+                    label="Download as CSV",
+                    data=csv_data,
+                    file_name="dataframe_result.csv",
+                    mime="text/csv"
+                )
+            except Exception as e:
+                st.error(f"Error processing URL: {e}")
+    else:
+        st.warning("Please enter LinkedIn credentials and a URL.")
 else:
     # Show "Coming Soon" message for Instagram and X
     st.info(f"{lead_filter} functionality is coming soon!")
 
 # Help section
-st.markdown("""
+st.divider()
+
+
+st.markdown(f"""
 ### How to Use
-1. Enter a LinkedIn post URL in the text box.
+1. Enter {lead_filter} credentials and a {lead_filter} post URL in the text box.
 2. Click on **Generate** to extract potential leads.
-3. Download the data as an XLSX file if needed.
+3. Download the data as a CSV file if needed.
 """)
 
