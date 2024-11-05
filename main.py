@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from io import StringIO
 import base64
+import plotly.express as px
 from helper.scrap import scraper  # Ensure your scraper function returns the DataFrame as described
 
 # Streamlit app code
