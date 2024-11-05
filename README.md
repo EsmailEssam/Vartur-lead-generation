@@ -5,7 +5,7 @@
 
 ## Overview
 
-Social Media Lead Generation is a web application built using Streamlit that helps users extract potential leads from social media posts, specifically from LinkedIn. Users can input their LinkedIn credentials and a post URL to generate a list of potential leads based on the post's content.
+Social Media Lead Generation is a web application built using Streamlit that helps users extract potential leads from social media posts, specifically from LinkedIn, (Instagram, and X, Soon to be implemented). Users can input their credentials and a post URL to generate a list of potential leads based on the post's content.
 
 ## Features
 
@@ -55,7 +55,7 @@ To set up this project locally, follow these steps:
    Start the Streamlit app by executing the following command:
 
    ```bash
-   streamlit run app.py
+   streamlit run main.py
    ```
 
 2. **Interact with the Application**
