@@ -4,9 +4,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import pandas as pd
+import time
 from llm import evaluate_lead
 
 def scraper(url, email, password):
+    
     # Initialize the WebDriver (Assuming you're using Chrome)
     driver = webdriver.Chrome()
 
@@ -32,7 +34,8 @@ def scraper(url, email, password):
         driver.get(url)
 
         # Wait for the comments section to load
-        WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'section.comment')))
+        # WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'section.comment')))
+        time.sleep(5)
         print('Comments loaded *****************')
 
         # Get the page source and create a BeautifulSoup object
@@ -42,29 +45,21 @@ def scraper(url, email, password):
         df_list = []
 
         # Finding each comment section on the page
-        comments = soup.find_all('section', class_='comment')
+        comments = soup.find_all('article', {'class': 'comments-comment-entity'})
 
         for comment in comments:
             try:
                 # Extract the commenter's name
-                commenter_name = comment.find(
-                    'a', {'data-tracking-control-name': 'public_post_comment_actor-name'}
-                ).get_text(strip=True)
+                commenter_name = comment.find('span', class_='comments-comment-meta__description-title').get_text(strip=True)
 
                 # Extract the commenter's headline (like role/title)
-                commenter_header = comment.find(
-                    'p', class_='!text-xs text-color-text-low-emphasis leading-[1.33333] mb-0.5 truncate comment__author-headline'
-                ).get_text(strip=True)
+                commenter_header = comment.find('div', class_='comments-comment-meta__description-subtitle').get_text(strip=True)
 
                 # Extract the profile link of the commenter
-                commenter_link = comment.find(
-                    'a', {'data-tracking-control-name': 'public_post_comment_actor-image'}
-                )['href']
+                commenter_link = comment.find('a', class_='app-aware-link')['href'] if comment.find('a', class_='app-aware-link') else 'N/A'
 
                 # Extract the main content of the comment
-                comment_content = comment.find(
-                    'p', class_='attributed-text-segment-list__content'
-                ).get_text(strip=True)
+                comment_content = comment.find('span', class_='comments-comment-item__main-content').get_text(strip=True)
                 
                 # Find if they are a lead and the reason
                 is_lead, reason = evaluate_lead(commenter_header, comment_content)
@@ -85,9 +80,5 @@ def scraper(url, email, password):
         print(f"An error occurred while scraping: {e}")
         # Return an empty DataFrame if an error occurs
         df = pd.DataFrame(columns=['Name', 'Link', 'Header', 'Comment Content','Is Lead','Reason'])
-
-    finally:
-        # Close the WebDriver
-        driver.quit()
 
     return df
