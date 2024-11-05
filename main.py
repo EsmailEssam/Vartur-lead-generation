@@ -62,3 +62,4 @@ st.markdown("""
 2. Click on **Generate** to extract potential leads.
 3. Download the data as an XLSX file if needed.
 """)
+

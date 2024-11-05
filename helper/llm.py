@@ -12,7 +12,7 @@ def evaluate_lead(post_content, user_header, user_comment):
     # Create system prompt
     system_prompt = f"""
     You are an intelligent assistant that helps evaluate LinkedIn's potential leads for a Dubai-based real estate company.
-    I will provide you with the content of the LinkedIn post and the commenters' user information.
+    I will provide you with the content of the LinkedIn post which will be about real estate and the commenters' user information.
     When provided with a user's information and the post's content, determine if they are a lead or not.
     You MUST respond with 'Lead' or 'Not a Lead', followed by a '#' and a concise reason for your decision.
     """
