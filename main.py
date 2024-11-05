@@ -7,17 +7,11 @@ from helper.scrap import scraper
 st.title("Social Media Lead Generation")
 
 # Sidebar for settings with radio buttons
-st.sidebar.title("Settings")
+st.sidebar.title("Platforms")
 lead_filter = st.sidebar.radio("Choose a Platform", ["LinkedIn", "Instagram", "X"])
 
-# Input URL from user
-col1, col2 = st.columns(2)
-
-with col1:
-    url = st.text_input("Enter a Post URL:")
-
-with col2:
-    generate_button = st.button("Generate")
+url = st.text_input("Enter a Post URL:")
+generate_button = st.button("Generate")
 
 
 if lead_filter == "LinkedIn":

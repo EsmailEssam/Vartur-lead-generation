@@ -4,3 +4,4 @@ selenium
 bs4
 openai
 xlsxwriter
+python-dotenv
