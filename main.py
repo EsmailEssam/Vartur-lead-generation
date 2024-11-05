@@ -1,44 +1,75 @@
 import streamlit as st
 import pandas as pd
 from io import BytesIO
+import plotly.express as px
 from helper.scrap import scraper
-import validators  # Make sure to install this package for URL validation
 
 # Streamlit app code
-st.title("LinkedIn Lead Generation")
+st.title("Social Media Lead Generation")
+
+# Sidebar for settings with radio buttons
+st.sidebar.title("Settings")
+lead_filter = st.sidebar.radio("Choose a Platform", ["LinkedIn", "Instagram", "X"])
 
 # Input URL from user
-url = st.text_input("Enter a LinkedIn Post URL:")
 
-# Generate button
-if st.button("Generate"):
-    if url and validators.url(url) and "linkedin.com" in url:
-        with st.spinner("Processing..."):
-            try:
-                # Process the URL
-                text_result, dataframe_result = scraper(url)
+url = st.text_input("Enter a Post URL:")
 
-                # Display the DataFrame as a table
-                st.write("Potential Leads:")
-                st.dataframe(dataframe_result)
 
-                # Download button for the DataFrame
-                def convert_df_to_xlsx(df):
-                    output = BytesIO()
-                    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                        df.to_excel(writer, index=False, sheet_name='Sheet1')
-                    return output.getvalue()
+generate_button = st.button("Generate")
 
-                xlsx_data = convert_df_to_xlsx(dataframe_result)
+# Initialize session state for the selected chart
+if 'chart_type' not in st.session_state:
+    st.session_state['chart_type'] = "Pie Chart"
 
-                # Show download button
-                st.download_button(
-                    label="Download as XLSX",
-                    data=xlsx_data,
-                    file_name="dataframe_result.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
-    else:
-        st.warning("Please enter a valid LinkedIn URL.")
+if lead_filter == "LinkedIn":
+    if generate_button:
+        if url:
+            with st.spinner("Processing..."):
+                try:
+                    text_result, dataframe_result = scraper(url)
+
+                    # Display the DataFrame as a table
+                    st.markdown("### Potential Leads")
+                    st.dataframe(dataframe_result)
+
+                    st.markdown("### Analysis")
+                    tab1, tab2, tab3 = st.tabs(["Pie Chart", "Histogram", "Bar Chart"])
+
+                    with tab1:
+                        fig = px.pie(dataframe_result, names="Is Lead")
+                        st.plotly_chart(fig, use_container_width=True)
+
+                    with tab2:
+                        st.info("Histogram is coming soon!")
+                    
+                    with tab3:
+                        st.info("Bar Chart is coming soon!")
+                        
+                    # Download button for the DataFrame
+                    csv_data = dataframe_result.to_csv(index=False).encode("utf-8")
+
+                    # Show download button
+                    st.download_button(
+                        label="Download as CSV",
+                        data=csv_data,
+                        file_name="dataframe_result.csv",
+                        mime="text/csv",
+                    )
+                except Exception as e:
+                    st.error(f"Error processing URL: {e}")
+        else:
+            st.warning("Please enter a URL.")
+else:
+    # Show "Coming Soon" message for Instagram and X
+    st.info(f"{lead_filter} functionality is coming soon!")
+
+# Help section
+st.markdown(
+    """
+### How to Use
+1. Enter a LinkedIn post URL in the text box.
+2. Click on **Generate** to extract potential leads.
+3. Download the data as an CSV file if needed.
+"""
+)
