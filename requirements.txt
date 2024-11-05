@@ -1,7 +1,8 @@
-streamlit
-pandas
-selenium
-bs4
-openai
-xlsxwriter
-python-dotenv
+beautifulsoup4==4.12.3
+openai==1.54.0
+pandas==2.2.3
+python-dotenv==1.0.1
+selenium==4.26.1
+streamlit==1.39.0
+xlsxwriter==3.2.0
+
