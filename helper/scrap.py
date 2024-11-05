@@ -5,8 +5,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import pandas as pd
 from llm import evaluate_lead
+import time
+from datetime import datetime
 
-def scraper(url, email, password):
+def scraper(url, email, password, max_attempts=3):
     # Initialize the WebDriver (Assuming you're using Chrome)
     driver = webdriver.Chrome()
 
@@ -25,6 +27,7 @@ def scraper(url, email, password):
         )
         sign_in_button.click()
         print("Signed IN")
+        
         # Step 2: Wait for user to manually input OTP
         WebDriverWait(driver, 120).until(EC.url_contains("feed"))
 
@@ -81,10 +84,27 @@ def scraper(url, email, password):
         # Create a DataFrame from the list of dictionaries
         df = pd.DataFrame(df_list)
 
+        # Sort the DataFrame by timestamp
+        df = df.sort_values('Timestamp', ascending=False)
+
+        # Reset the index
+        df = df.reset_index(drop=True)
+
     except Exception as e:
         print(f"An error occurred while scraping: {e}")
-        # Return an empty DataFrame if an error occurs
-        df = pd.DataFrame(columns=['Name', 'Link', 'Header', 'Comment Content','Is Lead','Reason'])
+        
+        # Retry the scraping if the maximum number of attempts has not been reached
+        attempts = 1
+        while attempts < max_attempts:
+            try:
+                print(f"Retrying scraping attempt {attempts}/{max_attempts}...")
+                return scraper(url, email, password, max_attempts)
+            except Exception as e:
+                print(f"Error during retry attempt {attempts}: {e}")
+                attempts += 1
+        
+        # Return an empty DataFrame if all attempts failed
+        df = pd.DataFrame(columns=['Name', 'Link', 'Header', 'Comment Content', 'Is Lead', 'Reason', ])
 
     finally:
         # Close the WebDriver

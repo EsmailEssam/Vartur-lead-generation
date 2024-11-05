@@ -1,10 +1,26 @@
 import streamlit as st
 import pandas as pd
 from io import StringIO
+import base64
 from helper.scrap import scraper  # Ensure your scraper function returns the DataFrame as described
 
 # Streamlit app code
-st.title("Social Media Lead Generation")
+# Function to convert image to base64 string
+def image_to_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
+
+# Streamlit app code
+logo_base64 = image_to_base64("data/logo.png")
+
+# Add the title and logo using HTML
+st.markdown(f"""
+    <div style="display: flex; align-items: center;">
+        <img src="data:image/png;base64,{logo_base64}" style="width: 50px; height: 50px;">
+        <h1 style="margin-left: 10px;"> Social Media Lead Generation</h1>
+    </div>
+""", unsafe_allow_html=True)
+
 st.divider()
 
 
@@ -30,7 +46,7 @@ if lead_filter == "LinkedIn":
             try:
                 # Pass the user credentials and URL to scraper function
                 dataframe_result = scraper(url, email, password)
-
+                print(dataframe_result,"***********************")
                 # Display the DataFrame as a table
                 st.markdown("### Potential Leads:")
                 st.dataframe(dataframe_result)
