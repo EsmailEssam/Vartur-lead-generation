@@ -3,3 +3,4 @@ pandas
 selenium
 bs4
 openai
+xlsxwriter
