@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from io import StringIO
 import base64
+import plotly.express as px
 from helper.scrap import scraper  # Ensure your scraper function returns the DataFrame as described
 
 # Streamlit app code
@@ -49,7 +50,21 @@ if lead_filter == "LinkedIn":
                 print(dataframe_result,"***********************")
                 # Display the DataFrame as a table
                 st.markdown("### Potential Leads:")
-                st.dataframe(dataframe_result.style.highlight_max(axis=0))
+                st.dataframe(dataframe_result)
+                
+                st.markdown("### Analysis")
+                tab1, tab2, tab3 = st.tabs(["Pie Chart", "Histogram", "Bar Chart"])
+
+                with tab1:
+                    fig = px.pie(dataframe_result, names="Is Lead")
+                    st.plotly_chart(fig, use_container_width=True)
+
+                with tab2:
+                    st.info("Histogram is coming soon!")
+                
+                with tab3:
+                    st.info("Bar Chart is coming soon!")
+                        
 
                 # Download button for CSV file
                 def convert_df_to_csv(df):
@@ -84,3 +99,4 @@ st.markdown(f"""
 2. Click on **Generate** to extract potential leads.
 3. Download the data as a CSV file if needed.
 """)
+
