@@ -10,22 +10,11 @@ st.title("Social Media Lead Generation")
 # Sidebar for settings with radio buttons
 st.sidebar.title("Settings")
 lead_filter = st.sidebar.radio("Choose a Platform", ["LinkedIn", "Instagram", "X"])
-st.title("Social Media Lead Generation")
-
-# Sidebar for settings with radio buttons
-st.sidebar.title("Settings")
-lead_filter = st.sidebar.radio("Choose a Platform", ["LinkedIn", "Instagram", "X"])
 
 # Input URL from user
-
 url = st.text_input("Enter a Post URL:")
 
-
 generate_button = st.button("Generate")
-
-# Initialize session state for the selected chart
-if 'chart_type' not in st.session_state:
-    st.session_state['chart_type'] = "Pie Chart"
 
 if lead_filter == "LinkedIn":
     if generate_button:
