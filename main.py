@@ -29,8 +29,19 @@ st.divider()
 st.sidebar.title("Platforms")
 lead_filter = st.sidebar.radio("Choose a Platform", ["LinkedIn", "Instagram", "X"])
 
+x_logo_base64 = image_to_base64("data/x logo.png")
+insta_logo_base64 = image_to_base64("data/insta logo.png")
+linkedin_logo_base64 = image_to_base64("data/linkedin logo.png")
+logos={'LinkedIn':linkedin_logo_base64,
+       "Instagram":insta_logo_base64,
+       "X":x_logo_base64}
+
 # Input fields for LinkedIn credentials
-st.markdown("### LinkedIn Login")
+st.markdown(f""" <div style="display: flex; align-items: center;">
+        <img src="data:image/png;base64,{logos[lead_filter]}" style="width: 30px; height: 30px;">
+        <h2 style="margin-left: 20px;"> {lead_filter} log in</h2>
+        </div>""", unsafe_allow_html=True)
+
 email = st.text_input("Email")
 password = st.text_input("Password", type="password")
 
