@@ -25,6 +25,17 @@ class InvalidCredentialsError(LinkedInLoginError):
     pass
 
 def scraper(url, email, password):
+    """
+    Scrape LinkedIn post comments with enhanced error handling and credential validation.
+    
+    Args:
+        url (str): LinkedIn post URL to scrape
+        email (str): LinkedIn login email
+        password (str): LinkedIn login password
+    
+    Returns:
+        pandas.DataFrame: Scraped data
+    """
 
     # Initialize the WebDriver (Assuming you're using Chrome)
     driver = webdriver.Chrome()
