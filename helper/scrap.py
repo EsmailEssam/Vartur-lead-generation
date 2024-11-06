@@ -49,6 +49,7 @@ def scraper(url, email, password):
     chrome_options.add_argument("--disable-dev-shm-usage")
     
     # Initialize the WebDriver
+    chrome_options.binary_location = "packages.txt"
     driver = webdriver.Chrome(options=chrome_options)
 
     try:
