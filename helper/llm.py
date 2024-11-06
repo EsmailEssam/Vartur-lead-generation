@@ -3,7 +3,7 @@ import time
 from config import client
 
 # Function to integrate LLM like GPT
-def evaluate_lead(post_content, user_header, user_comment):
+def evaluate_lead(user_header, user_comment):
     if not isinstance(user_header, str) or not isinstance(user_comment, str):
         return "Not a Lead", "Invalid user information"
 
@@ -20,7 +20,7 @@ def evaluate_lead(post_content, user_header, user_comment):
     all_messages.append({"role": "system", "content": system_prompt})
 
     # Get user input
-    user_prompt = f"Post Content: {post_content}\nUser Information\nUser Header: {user_header}\nUser Comment: {user_comment}"
+    user_prompt = f"User Information\nUser Header: {user_header}\nUser Comment: {user_comment}"
     all_messages.append({"role": "user", "content": user_prompt})
 
     try:
