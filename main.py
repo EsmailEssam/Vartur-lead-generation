@@ -17,7 +17,7 @@ logo_base64 = image_to_base64("data/logo.png")
 # Add the title and logo using HTML
 st.markdown(f"""
     <div style="display: flex; align-items: center;">
-        <img src="data:image/png;base64,{logo_base64}" style="width: 50px; height: 50px;">
+        <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: 100px;">
         <h1 style="margin-left: 10px;"> Social Media Lead Generation</h1>
     </div>
 """, unsafe_allow_html=True)
@@ -110,4 +110,5 @@ st.markdown(f"""
 2. Click on **Generate** to extract potential leads.
 3. Download the data as a CSV file if needed.
 """)
+st.divider()
 
