@@ -1,6 +1,3 @@
-
-
-
 # Social Media Lead Generation
 
 ## Overview
@@ -21,7 +18,6 @@ Social Media Lead Generation is a web application built using Streamlit that hel
 - Streamlit
 - Pandas
 - BeautifulSoup (or any other web scraping library used in the scraper)
-- HTML/CSS for styling
 
 ## Installation
 
@@ -55,7 +51,7 @@ To set up this project locally, follow these steps:
    Start the Streamlit app by executing the following command:
 
    ```bash
-   streamlit run app.py
+   streamlit run main.py
    ```
 
 2. **Interact with the Application**
@@ -72,4 +68,6 @@ The help section provides a brief guide on how to use the application:
 - Enter your credentials and a post URL in the text box.
 - Click on **Generate** to extract potential leads.
 - Download the data as a CSV file if needed.
+
+--------------------------
 
