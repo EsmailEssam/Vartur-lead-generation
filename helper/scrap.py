@@ -5,6 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from bs4 import BeautifulSoup
+from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 import time
 import chromedriver_autoinstaller
@@ -50,7 +51,9 @@ def scraper(url, email, password):
     
     # Initialize the WebDriver
     chrome_options.binary_location = "packages.txt/google-chrome-stable"
-    driver = webdriver.Chrome(options=chrome_options)
+    # driver = webdriver.Chrome(options=chrome_options)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+
 
     try:
         # Step 1: Navigate to LinkedIn login page
