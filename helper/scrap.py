@@ -5,13 +5,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from bs4 import BeautifulSoup
-from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 import time
 from selenium.webdriver.firefox.service import Service
 from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.firefox.options import Options
-import chromedriver_autoinstaller
 import logging
 from llm import evaluate_lead
 
@@ -45,7 +43,7 @@ def scraper(url, email, password):
 
     # Set up Firefox options for headless operation
     firefox_options = Options()
-    firefox_options.add_argument("--headless")
+    # firefox_options.add_argument("--headless")
     firefox_options.add_argument("--disable-gpu")
     firefox_options.add_argument("--no-sandbox")
 
