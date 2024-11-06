@@ -5,46 +5,59 @@ import base64
 import plotly.express as px
 from helper.scrap import scraper  # Ensure your scraper function returns the DataFrame as described
 
-# Streamlit app code
 # Function to convert image to base64 string
 def image_to_base64(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode()
 
-# Streamlit app code
-logo_base64 = image_to_base64("data/logo.png")
-
-# Add the title and logo using HTML
+background=image_to_base64('data/background.png')
 st.markdown(f"""
-    <div style="display: flex; align-items: center;">
-        <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: 100px;">
-        <h1 style="margin-left: 10px;"> Social Media Lead Generation</h1>
+    <style>
+        .stApp {{
+            background-image: url("data:image/png;base64,{background}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+        }}
+    </style>
+""", unsafe_allow_html=True)
+# Convert logo to base64
+logo_base64 = image_to_base64("data/logo.png")
+# Add the title with logo positioned to the right
+st.markdown(f"""
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0;">
+        <h1 style="margin: 0;">Social Media Lead Generation</h1>
+        <img src="data:image/png;base64,{logo_base64}" style="width: 100px; height: 100px; margin-left: auto;">
     </div>
 """, unsafe_allow_html=True)
 
 st.divider()
 
-
-# Sidebar for settings with radio buttons
+# Sidebar for settings and credentials
 st.sidebar.title("Platforms")
+
+# Platform selection
 lead_filter = st.sidebar.radio("Choose a Platform", ["LinkedIn", "Instagram", "X"])
 
+# Input fields for credentials in sidebar
+st.sidebar.markdown(f"### {lead_filter} Login")
+email = st.sidebar.text_input("Email")
+password = st.sidebar.text_input("Password", type="password")
+
+# Logos for platforms
 x_logo_base64 = image_to_base64("data/x logo.png")
 insta_logo_base64 = image_to_base64("data/insta logo.png")
 linkedin_logo_base64 = image_to_base64("data/linkedin logo.png")
-logos={'LinkedIn':linkedin_logo_base64,
-       "Instagram":insta_logo_base64,
-       "X":x_logo_base64}
+logos = {'LinkedIn': linkedin_logo_base64, "Instagram": insta_logo_base64, "X": x_logo_base64}
 
-# Input fields for LinkedIn credentials
-st.markdown(f""" <div style="display: flex; align-items: center;">
+# Display chosen platform's logo
+st.markdown(f""" 
+    <div style="display: flex; align-items: center;">
         <img src="data:image/png;base64,{logos[lead_filter]}" style="width: 30px; height: 30px;">
-        <h2 style="margin-left: 20px;"> {lead_filter} log in</h2>
-        </div>""", unsafe_allow_html=True)
-
-email = st.text_input("Email")
-password = st.text_input("Password", type="password")
-
+        <h2 style="margin-left: 10px;">{lead_filter} Post URL</h2>
+    </div>
+""", unsafe_allow_html=True)
 # Input URL from user
 url = st.text_input("Enter a LinkedIn Post URL:")
 
@@ -111,4 +124,3 @@ st.markdown(f"""
 3. Download the data as a CSV file if needed.
 """)
 st.divider()
-
