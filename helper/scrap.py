@@ -13,6 +13,7 @@ from webdriver_manager.firefox import GeckoDriverManager
 from selenium.webdriver.firefox.options import Options
 import chromedriver_autoinstaller
 import logging
+from llm import evaluate_lead
 
 # Configure console-only logging
 logging.basicConfig(
