@@ -55,7 +55,7 @@ logos = {'LinkedIn': linkedin_logo_base64, "Instagram": insta_logo_base64, "X": 
 st.markdown(f""" 
     <div style="display: flex; align-items: center;">
         <img src="data:image/png;base64,{logos[lead_filter]}" style="width: 30px; height: 30px;">
-        <h2 style="margin-left: 10px;">{lead_filter} Post URL</h2>
+        <h2 style="margin-left: 10px;">{lead_filter} Lead Generation</h2>
     </div>
 """, unsafe_allow_html=True)
 # Input URL from user
