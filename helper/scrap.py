@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -6,7 +7,7 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from bs4 import BeautifulSoup
 import pandas as pd
 import time
-from llm import evaluate_lead
+import chromedriver_autoinstaller
 import logging
 
 # Configure console-only logging
@@ -37,8 +38,18 @@ def scraper(url, email, password):
         pandas.DataFrame: Scraped data
     """
 
-    # Initialize the WebDriver (Assuming you're using Chrome)
-    driver = webdriver.Chrome()
+    # Install `chromedriver` automatically
+    chromedriver_autoinstaller.install()
+    
+    # Set up Chrome options for headless operation
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    
+    # Initialize the WebDriver
+    driver = webdriver.Chrome(options=chrome_options)
 
     try:
         # Step 1: Navigate to LinkedIn login page
@@ -91,7 +102,7 @@ def scraper(url, email, password):
             # No error messages found, continue with login process
             pass
         
-        # Wait for OTP verification
+        # Wait for OTP verification if required
         try:
             WebDriverWait(driver, 100).until(EC.url_contains("feed"))
         except TimeoutException:
