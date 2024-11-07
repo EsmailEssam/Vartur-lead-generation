@@ -28,6 +28,68 @@ class InvalidCredentialsError(LinkedInLoginError):
     """Specific exception for invalid credentials"""
     pass
 
+
+def click_load_more_comments(driver):
+    """
+    Click 'Load more comments' button until all comments are loaded.
+    
+    Args:
+        driver: Selenium WebDriver instance
+    """
+    logger.info("Checking for additional comments to load")
+    
+    # Initial wait time between clicks (in seconds)
+    wait_time = 3
+    max_attempts = 50  # Maximum number of attempts to prevent infinite loops
+    attempts = 0
+    
+    while attempts < max_attempts:
+        try:
+            # Wait for either the button to be clickable or determine it doesn't exist
+            load_more_button = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((
+                    By.XPATH, 
+                    "//button[contains(@class, 'comments-comments-list__load-more-comments-button--cr') and contains(.,'Load more comments')]"
+                ))
+            )
+            
+            # Check if button is visible and enabled
+            if not load_more_button.is_displayed() or not load_more_button.is_enabled():
+                logger.info("No more comments to load")
+                break
+                
+            # Scroll button into view
+            driver.execute_script("arguments[0].scrollIntoView(true);", load_more_button)
+            time.sleep(1)  # Short pause after scrolling
+            
+            # Click the button
+            try:
+                load_more_button.click()
+                logger.info("Clicked 'Load more comments' button")
+                time.sleep(wait_time)  # Wait for new comments to load
+                attempts += 1
+            except Exception as click_error:
+                # If regular click fails, try JavaScript click
+                try:
+                    driver.execute_script("arguments[0].click();", load_more_button)
+                    logger.info("Clicked 'Load more comments' button using JavaScript")
+                    time.sleep(wait_time)
+                    attempts += 1
+                except Exception as js_click_error:
+                    logger.error(f"Failed to click button: {str(js_click_error)}")
+                    break
+                    
+        except TimeoutException:
+            logger.info("No more 'Load more comments' button found")
+            break
+        except Exception as e:
+            logger.error(f"Error while loading more comments: {str(e)}")
+            break
+            
+    if attempts >= max_attempts:
+        logger.warning(f"Reached maximum number of attempts ({max_attempts}) to load comments")
+
+
 def scraper(url, email, password):
     """
     Scrape LinkedIn post comments with enhanced error handling and credential validation.
@@ -110,7 +172,12 @@ def scraper(url, email, password):
         
         # Navigate to post URL and scrape content
         driver.get(url)
+        
+        # Wait for the page to load
         time.sleep(5)
+        
+        # Load all comments before scraping
+        click_load_more_comments(driver)
         
         # Get the page source and create a BeautifulSoup object
         soup = BeautifulSoup(driver.page_source, "html.parser")
