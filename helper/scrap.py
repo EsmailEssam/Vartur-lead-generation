@@ -120,14 +120,11 @@ def scraper(url, email, password):
     options = Options()
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
-    options.add_argument('--headless')
+    # options.add_argument('--headless')
     
-    @st.cache_resource
-    def get_driver():
-        return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
     #print(ChromeDriverManager().install())
-    driver = get_driver()
+    driver = webdriver.Chrome(service=Service(), options=options)
 
 
     try:
