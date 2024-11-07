@@ -105,7 +105,7 @@ def scraper(url, email, password):
 
     # Set up Firefox options for headless operation
     firefox_options = Options()
-    firefox_options.add_argument("--headless")
+    # firefox_options.add_argument("--headless")
     firefox_options.add_argument("--disable-gpu")
     firefox_options.add_argument("--no-sandbox")
 
@@ -169,6 +169,8 @@ def scraper(url, email, password):
             WebDriverWait(driver, 100).until(EC.url_contains("feed"))
         except TimeoutException:
             raise LinkedInLoginError("OTP verification timeout or login unsuccessful")
+        
+        logger.info(f"Log in Successfully")
         
         # Navigate to post URL and scrape content
         driver.get(url)
