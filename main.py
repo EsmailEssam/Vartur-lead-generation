@@ -25,6 +25,8 @@ st.markdown(f"""
 # Convert logo to base64
 logo_base64 = image_to_base64("data/logo.png")
 # Add the title with logo positioned to the right
+# Set the page title and icon
+st.set_page_config(page_title="Social Media Lead Generation", page_icon="🎯")
 st.markdown(f"""
     <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0;">
         <h1 style="margin: 0;">Social Media Lead Generation</h1>
