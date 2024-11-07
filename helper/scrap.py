@@ -120,7 +120,7 @@ def scraper(url, email, password):
     options = Options()
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
-    # options.add_argument('--headless')
+    options.add_argument('--headless')
     
     @st.cache_resource
     def get_driver():
