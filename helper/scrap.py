@@ -15,6 +15,8 @@ from llm import evaluate_lead
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+import streamlit as st
+
 
 # Configure console-only logging
 logging.basicConfig(
@@ -118,10 +120,14 @@ def scraper(url, email, password):
     options = Options()
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
-    options.add_argument('--headless')
+    # options.add_argument('--headless')
+    
+    @st.cache_resource
+    def get_driver():
+        return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-    print(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    #print(ChromeDriverManager().install())
+    driver = get_driver()
 
 
     try:
