@@ -59,7 +59,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 # Input URL from user
-url = st.text_input(f"Enter a {lead_filter} Post URL:")
+url = st.text_input(f"Enter {lead_filter} Post URL:")
 
 # Generate button
 generate_button = st.button("Generate")
