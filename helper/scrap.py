@@ -120,6 +120,7 @@ def scraper(url, email, password):
     options.add_argument('--no-sandbox')
     options.add_argument('--headless')
 
+    print(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 
