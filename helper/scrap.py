@@ -13,6 +13,8 @@ from selenium.webdriver.firefox.options import Options
 import logging
 from llm import evaluate_lead
 
+
+
 # Configure console-only logging
 logging.basicConfig(
     level=logging.INFO,
@@ -106,8 +108,8 @@ def scraper(url, email, password):
     # Set up Firefox options for headless operation
     firefox_options = Options()
     # firefox_options.add_argument("--headless")
-    firefox_options.add_argument("--disable-gpu")
-    firefox_options.add_argument("--no-sandbox")
+    # firefox_options.add_argument("--disable-gpu")
+    # firefox_options.add_argument("--no-sandbox")
 
     # Initialize the WebDriver with GeckoDriverManager
     driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=firefox_options)
