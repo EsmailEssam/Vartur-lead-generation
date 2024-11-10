@@ -42,7 +42,7 @@ def evaluate_lead(user_header, user_comment):
 
         # Call the OpenAI API
         response = client.chat.completions.create(
-            model="gpt-4",  # or your preferred model
+            model="gpt-4o-mini", 
             messages=messages,
             max_tokens=100,
             temperature=0.3
