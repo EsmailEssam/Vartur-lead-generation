@@ -5,6 +5,7 @@ import base64
 import plotly.express as px
 from helper.scrap import scraper  # Ensure your scraper function returns the DataFrame as described
 
+st.set_page_config(page_title="Social Media Lead Generation", page_icon="🎯")
 # Function to convert image to base64 string
 def image_to_base64(image_path):
     with open(image_path, "rb") as image_file:
@@ -25,6 +26,8 @@ st.markdown(f"""
 # Convert logo to base64
 logo_base64 = image_to_base64("data/logo.png")
 # Add the title with logo positioned to the right
+# Set the page title and icon
+
 st.markdown(f"""
     <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 0;">
         <h1 style="margin: 0;">Social Media Lead Generation</h1>
@@ -59,7 +62,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 # Input URL from user
-url = st.text_input(f"Enter a {lead_filter} Post URL:")
+url = st.text_input(f"Enter {lead_filter} Post URL:")
 
 # Generate button
 generate_button = st.button("Generate")
