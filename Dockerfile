@@ -1,39 +1,69 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
+# Use the RapidFort image as the base
+FROM rapidfort/python-chromedriver:latest-arm64
 
-# Set environment variables to avoid certain warnings
-ENV PYTHONUNBUFFERED 1
-ENV DISPLAY=:99
+# Set environment variables
+ENV PYTHON_VERSION=3.11.6
 
-# Install system dependencies required by selenium and the browser
+# Install dependencies required to build Python from source
 RUN apt-get update && apt-get install -y \
-    curl \
-    unzip \
     wget \
-    libglib2.0-0 \
-    libsm6 \
-    libxrender1 \
-    libxext6 \
-    libnss3 \
-    libgdk-pixbuf2.0-0 \
-    libgtk-3-0 \
-    xvfb \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libffi-dev \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    libxml2-dev \
+    libxmlsec1-dev \
+    liblzma-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Firefox and GeckoDriver
-RUN wget -q -O - https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz | tar -xz -C /usr/local/bin
+# Download, extract, and compile Python 3.11
+RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
+    && tar xzf Python-${PYTHON_VERSION}.tgz \
+    && cd Python-${PYTHON_VERSION} \
+    && ./configure --enable-optimizations \
+    && make -j$(nproc) \
+    && make altinstall \
+    && cd .. \
+    && rm -rf Python-${PYTHON_VERSION}*
 
-# Set up working directory
+# Set Python 3.11 as the default Python version
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.11 1
+
+# Install pip for Python 3.11
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt /app/requirements.txt
+RUN python3.11 -m pip install --no-cache-dir -r /app/requirements.txt
+
+# Set the working directory and copy the application code
 WORKDIR /app
+COPY . .
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Ensure that the necessary environment variables are set
+ENV PYTHONUNBUFFERED=1
+ENV DISPLAY=:99
 
-# Install the required Python packages
-RUN pip install --no-cache-dir -r requirements.txt
+# Create Streamlit configuration
+RUN mkdir -p /root/.streamlit
+RUN echo "\
+[server]\n\
+enableCORS = false\n\
+enableXsrfProtection = false\n\
+" > /root/.streamlit/config.toml
 
-# Expose port 8501 for the Streamlit app
+# Start Xvfb, Chromium, and Streamlit
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Expose the port Streamlit runs on
 EXPOSE 8501
 
-# Start the app using streamlit
-CMD ["streamlit", "run", "main.py"]
+# Set the entrypoint to the start script
+CMD ["/app/start.sh"]
