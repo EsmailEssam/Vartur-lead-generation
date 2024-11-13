@@ -1,4 +1,5 @@
 import os
+import logging
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -12,3 +13,19 @@ if not OPENAI_API_KEY:
 
 # Initialize OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY)
+
+class InstagramLoginError(Exception):
+    """Custom exception for Instagram login failures"""
+    pass
+
+class InvalidCredentialsError(InstagramLoginError):
+    """Specific exception for invalid credentials"""
+    pass
+
+
+# Configure console-only logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
