@@ -4,9 +4,12 @@ import os
 from io import BytesIO
 import base64
 import plotly.express as px
-from helper.scrap import scraper, LinkedInLoginError, InvalidCredentialsError
+from helper.scrap import scraper
 import time
 import traceback
+from helper.config import LinkedInLoginError, InstagramLoginError, InvalidCredentialsError
+from helper.instagramscraper import InstagramScraper
+from helper.linkedinscraper import LinkedInScraper
 
 # Configure page
 st.set_page_config(
@@ -153,12 +156,12 @@ if lead_filter == "LinkedIn":
                     progress_bar.progress(20)
                     
                     # Get the data
-                    st.session_state.dataframe_result = scraper(
+                    st.session_state.dataframe_result = LinkedInScraper(
                         url,
                         st.session_state['email'],
                         st.session_state['password'],
                         headless=not st.session_state.debug_mode
-                    )
+                    ).scrape()
                     
                     progress_bar.progress(100)
                     status_text.text("Processing complete!")
