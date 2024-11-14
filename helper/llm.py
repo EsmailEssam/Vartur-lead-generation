@@ -6,7 +6,7 @@ from .config import client
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def evaluate_lead(user_header, user_comment):
+def evaluate_lead(info, user_comment, platform):
     """
     Evaluate if a comment is from a potential lead using OpenAI's GPT.
     
@@ -17,16 +17,23 @@ def evaluate_lead(user_header, user_comment):
     Returns:
         tuple: (decision, reason) where decision is "Lead" or "Not a Lead"
     """
-    if not isinstance(user_header, str) or not isinstance(user_comment, str):
+    if not isinstance(info, str) or not isinstance(user_comment, str):
         return "Not a Lead", "Invalid input data"
 
     try:
         # Create the messages for the API
+        if platform == 'LinkedIn':
+            user_message = f"User Header: {info}\nComment: {user_comment}"
+        elif platform == 'Instagram':
+            user_message = f"Post Content: {info}\nComment: {user_comment}"
+        elif platform == 'X':
+            pass
+        
         messages = [
             {
                 "role": "system",
-                "content": """You are an expert real estate lead qualifier for a Dubai-based real estate company.
-                Analyze the LinkedIn user's profile and comment to determine if they're a potential lead.
+                "content": f"""You are an expert real estate lead qualifier for a Dubai-based real estate company.
+                Analyze the {platform} user's profile and comment to determine if they're a potential lead.
                 Consider factors like:
                 - Interest in real estate
                 - Investment potential
@@ -36,7 +43,7 @@ def evaluate_lead(user_header, user_comment):
             },
             {
                 "role": "user",
-                "content": f"User Header: {user_header}\nComment: {user_comment}"
+                "content": user_message
             }
         ]
 
