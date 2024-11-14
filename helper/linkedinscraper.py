@@ -9,14 +9,14 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 
-from .config import logger, LinkedInLoginError, InvalidCredentialsError
+from .config import init_driver, logger, LinkedInLoginError, InvalidCredentialsError
 from .llm import evaluate_lead
 
-def initialize_driver(headless=False):
+def initialize_driver(is_headless=False):
     """Initialize undetected Chrome driver with specified options"""
     options = uc.ChromeOptions()
     
-    if headless:
+    if is_headless:
         options.add_argument('--headless')
     
     options.add_argument('--no-sandbox')
@@ -31,11 +31,11 @@ def initialize_driver(headless=False):
     return uc.Chrome(options=options)
 
 class LinkedInScraper:
-    def __init__(self, url, email, password, headless):
+    def __init__(self, url, email, password, is_headless):
         self.url = url
         self.email = email
         self.password = password
-        self.driver = initialize_driver(headless)
+        self.driver = init_driver(is_headless)
 
     ######################################## Login ########################################
     def _login(self):

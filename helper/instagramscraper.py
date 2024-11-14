@@ -16,11 +16,11 @@ import json
 from .config import logger, InstagramLoginError, InvalidCredentialsError
 from .llm import evaluate_lead
 
-def initialize_driver(headless=True):
+def initialize_driver(is_headless=True):
     # Setup WebDriver options
     options = Options()
     
-    if headless:
+    if is_headless:
         options.add_argument('--headless')
     
     options.add_argument("--disable-gpu")

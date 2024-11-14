@@ -160,7 +160,7 @@ if lead_filter == "LinkedIn":
                         url,
                         st.session_state['email'],
                         st.session_state['password'],
-                        headless=not st.session_state.debug_mode
+                        is_headless=not st.session_state.debug_mode
                     ).scrape()
                     
                     progress_bar.progress(100)
