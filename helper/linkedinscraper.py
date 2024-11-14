@@ -152,7 +152,7 @@ class LinkedInScraper:
         return pd.DataFrame(data)
 
     ######################################## Main scraping function ########################################
-    def scrape(self):
+    def scrap(self):
         """Main function to perform the scraping process"""
         try:
             self._login()

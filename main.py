@@ -99,9 +99,10 @@ st.markdown(f"""
 
 st.divider()
 
+
 # Sidebar configuration
 with st.sidebar:
-    st.title("Settings")
+    st.title("Platform")
     
     # Platform selection
     lead_filter = st.radio("Choose a Platform", ["LinkedIn", "Instagram", "X"])
@@ -160,8 +161,8 @@ if lead_filter == "LinkedIn":
                         url,
                         st.session_state['email'],
                         st.session_state['password'],
-                        is_headless=not st.session_state.debug_mode
-                    ).scrape()
+                        headless=not st.session_state.debug_mode
+                    ).scrap()
                     
                     progress_bar.progress(100)
                     status_text.text("Processing complete!")
@@ -269,6 +270,142 @@ if lead_filter == "LinkedIn":
         elif st.session_state.dataframe_result is not None and st.session_state.dataframe_result.empty:
             st.warning("No results found for this URL. Please check if the post exists and has comments.")
             st.session_state.dataframe_result = None  # Reset the state
+
+
+# Instagram functionality section
+elif lead_filter == "Instagram":
+    if not url:
+        st.info("Please enter an Instagram post URL to begin.")
+    elif 'email' not in st.session_state or not st.session_state['email']:
+        st.warning("Please enter your Instagram credentials in the sidebar first.")
+    else:
+        # Process button with loading animation
+        if st.button("Generate Leads", use_container_width=True):
+            with st.spinner('Processing... This may take a few minutes.'):
+                try:
+                    # Create progress bar
+                    progress_bar = st.progress(0)
+                    status_text = st.empty()
+                    
+                    # Update status
+                    status_text.text("Logging in to Instagram...")
+                    progress_bar.progress(20)
+                    
+                    # Get the data
+                    st.session_state.dataframe_result = InstagramScraper(
+                        url,
+                        st.session_state['email'],
+                        st.session_state['password'],
+                        headless=not st.session_state.debug_mode
+                    ).scrap()
+                    
+                    progress_bar.progress(100)
+                    status_text.text("Processing complete!")
+                    time.sleep(1)
+                    status_text.empty()
+                    progress_bar.empty()
+
+                except InvalidCredentialsError:
+                    st.error("Invalid Instagram credentials. Please check your email and password.")
+                except InstagramLoginError as e:
+                    st.error(f"Login error: {str(e)}")
+                except Exception as e:
+                    st.error(f"An error occurred: {str(e)}")
+                    if st.session_state.debug_mode:
+                        with st.expander("Error Details"):
+                            st.code(traceback.format_exc())
+
+        # Display results if data exists
+        if st.session_state.dataframe_result is not None and not st.session_state.dataframe_result.empty:
+            # Show results in tabs
+            tab1, tab2 = st.tabs(["📊 Data", "📈 Analysis"])
+            
+            with tab1:
+                st.markdown("### Identified Leads")
+                
+                # Check if 'Is Lead' column exists
+                if 'Is Lead' in st.session_state.dataframe_result.columns:
+                    lead_filter = st.selectbox(
+                        "Filter by lead status:",
+                        ["All", "Lead", "Not a Lead"]
+                    )
+                    
+                    filtered_df = st.session_state.dataframe_result
+                    if lead_filter != "All":
+                        filtered_df = st.session_state.dataframe_result[st.session_state.dataframe_result["Is Lead"] == lead_filter]
+                else:
+                    filtered_df = st.session_state.dataframe_result
+                
+                st.dataframe(
+                    filtered_df,
+                    use_container_width=True,
+                    hide_index=True
+                )
+                
+                # Download options
+                col1, col2 = st.columns(2)
+                with col1:
+                    csv = filtered_df.to_csv(index=False)
+                    st.download_button(
+                        "Download as CSV",
+                        csv,
+                        "leads.csv",
+                        "text/csv",
+                        use_container_width=True
+                    )
+                with col2:
+                    buffer = BytesIO()
+                    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                        filtered_df.to_excel(writer, sheet_name='Leads', index=False)
+                    excel_data = buffer.getvalue()
+                    st.download_button(
+                        "Download as Excel",
+                        excel_data,
+                        "leads.xlsx",
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        use_container_width=True
+                    )
+            
+            with tab2:
+                # Summary metrics
+                if 'Is Lead' in st.session_state.dataframe_result.columns:
+                    total_leads = len(st.session_state.dataframe_result[st.session_state.dataframe_result["Is Lead"] == "Lead"])
+                    total_comments = len(st.session_state.dataframe_result)
+                    lead_rate = (total_leads / total_comments * 100) if total_comments > 0 else 0
+                else:
+                    total_leads = 0
+                    total_comments = len(st.session_state.dataframe_result)
+                    lead_rate = 0
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Total Comments", total_comments)
+                with col2:
+                    st.metric("Total Leads", total_leads)
+                with col3:
+                    st.metric("Lead Rate", f"{lead_rate:.1f}%")
+                
+                # Visualizations
+                viz_tabs = st.tabs(["Lead Distribution", "Header Analysis"])
+                
+                with viz_tabs[0]:
+                    if 'Is Lead' in st.session_state.dataframe_result.columns:
+                        fig = px.pie(
+                            st.session_state.dataframe_result,
+                            names="Is Lead",
+                            title="Lead Distribution",
+                            color_discrete_sequence=px.colors.qualitative.Set3
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.info("No lead classification data available.")
+                
+                with viz_tabs[1]:
+                    st.info("Header analysis visualization coming soon!")
+        elif st.session_state.dataframe_result is not None and st.session_state.dataframe_result.empty:
+            st.warning("No results found for this URL. Please check if the post exists and has comments.")
+            st.session_state.dataframe_result = None  # Reset the state
+
 
 else:
     st.info(f"{lead_filter} integration coming soon! 🚀")

@@ -2,3 +2,4 @@
 __pycache__/
 helper/__pycache__/
 env
+*.mp4
