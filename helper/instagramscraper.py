@@ -159,6 +159,40 @@ class InstagramScraper:
             return post_data  # Return what we have, even if incomplete
     
     
+    ######################################## Load more comments ########################################
+    def _click_load_more_comments(self):
+        """Click 'Load more comments' button repeatedly to load all comments"""
+        wait_time = 3
+        max_attempts = 50
+        attempts = 0
+
+        while attempts < max_attempts:
+            try:
+                load_more_button = WebDriverWait(self.driver, 5).until(
+                    EC.presence_of_element_located((
+                        By.XPATH, 
+                        "//button[contains(@class, '_abl-') and contains(.,'Load more comments')]"
+                    ))
+                )
+
+                if not load_more_button.is_displayed():
+                    logger.info("No more comments button visible")
+                    break
+                
+                self.driver.execute_script("arguments[0].scrollIntoView(true);", load_more_button)
+                time.sleep(1)
+                self.driver.execute_script("arguments[0].click();", load_more_button)
+                logger.info("Clicked 'Load more comments' button")
+                time.sleep(wait_time)
+                attempts += 1
+            except TimeoutException:
+                logger.info("No more comments to load")
+                break
+            except Exception as e:
+                logger.error(f"Error loading comments: {str(e)}")
+                break
+    
+    
     ######################################## Extract the comment ########################################
     def _extract_comments(self, soup, post_content):
         """Extracts comments from the BeautifulSoup object and evaluates leads."""
@@ -174,7 +208,7 @@ class InstagramScraper:
             except (KeyError, IndexError, TypeError):
                 continue  # Skip if the path doesn't exist
 
-        for comment in comments:
+        for index, comment in enumerate(comments, 1):
             node = comment["node"]
             commenter_name = node["user"].get("username")
             commenter_id = node["user"].get("id")
@@ -182,6 +216,7 @@ class InstagramScraper:
             comment_text = node.get("text")
             
             is_lead, reason = evaluate_lead(post_content, comment_text, platform='Instagram')
+            logger.info(f"Processing comment {index}/{len(comments)}")
             
             df_list.append({
                 "Name": commenter_name,
@@ -210,12 +245,14 @@ class InstagramScraper:
             driver.get(self.url)
             time.sleep(5)
             post_data = self._get_post_content()
+            
+            self._click_load_more_comments()
 
             soup = BeautifulSoup(driver.page_source, "html.parser")
             comments_df = self._extract_comments(soup, post_data['caption'])
 
             logger.info(f"Successfully processed {len(comments_df)} comments")
-            return post_data, comments_df
+            return comments_df
 
         except (InvalidCredentialsError, InstagramLoginError) as e:
             logger.error(f"Login error: {str(e)}")

@@ -133,8 +133,8 @@ class LinkedInScraper:
                 link = link["href"] if link else "N/A"
                 content = comment.find("span", class_="comments-comment-item__main-content").text.strip()
                 
-                logger.info(f"Processing comment {index}/{len(comments)}")
                 is_lead, reason = evaluate_lead(header, content, platform='LinkedIn')
+                logger.info(f"Processing comment {index}/{len(comments)}")
                 
                 data.append({
                     "Name": name,
