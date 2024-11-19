@@ -28,6 +28,10 @@ class InstagramLoginError(Exception):
     """Custom exception for Instagram login failures"""
     pass
 
+class XLoginError(Exception):
+    """Custom exception for Instagram login failures"""
+    pass
+
 class InvalidCredentialsError(InstagramLoginError):
     """Specific exception for invalid credentials"""
     pass

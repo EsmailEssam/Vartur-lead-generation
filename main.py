@@ -7,9 +7,10 @@ import plotly.express as px
 from helper.scrap import scraper
 import time
 import traceback
-from helper.config import LinkedInLoginError, InstagramLoginError, InvalidCredentialsError
+from helper.config import LinkedInLoginError, InstagramLoginError, InvalidCredentialsError, XLoginError
 from helper.instagramscraper import InstagramScraper
 from helper.linkedinscraper import LinkedInScraper
+from helper.xscraper import XScraper
 
 # Configure page
 st.set_page_config(
@@ -407,9 +408,164 @@ elif lead_filter == "Instagram":
             st.session_state.dataframe_result = None  # Reset the state
 
 
-else:
-    st.info(f"{lead_filter} integration coming soon! 🚀")
+elif lead_filter == "X":
+    if not url:
+        st.info("Please enter an X post URL to begin.")
+    elif 'email' not in st.session_state or not st.session_state['email']:
+        st.warning("Please enter your X credentials in the sidebar first.")
+    else:
+        # Process button with loading animation
+        if st.button("Fetch Comments", use_container_width=True):
+            with st.spinner('Processing... This may take a few minutes.'):
+                try:
+                    # Create progress bar
+                    progress_bar = st.progress(0)
+                    status_text = st.empty()
+                    
+                    # Update status
+                    status_text.text("Logging in to X...")
+                    progress_bar.progress(20)
+                    
+                    # Initialize scraper
+                    scraper = XScraper(
+                        url=url,
+                        email=st.session_state['email'],
+                        password=st.session_state['password'],
+                        is_headless=not st.session_state.debug_mode
+                    )
+                    
+                    status_text.text("Fetching comments...")
+                    progress_bar.progress(50)
+                    
+                    # Get the data
+                    st.session_state.dataframe_result = scraper.scrape()
+                    
+                    progress_bar.progress(100)
+                    status_text.text("Processing complete!")
+                    time.sleep(1)
+                    status_text.empty()
+                    progress_bar.empty()
 
+                except InvalidCredentialsError:
+                    st.error("Invalid X credentials. Please check your email and password.")
+                except XLoginError as e:
+                    st.error(f"Login error: {str(e)}")
+                except Exception as e:
+                    st.error(f"An error occurred: {str(e)}")
+                    if st.session_state.debug_mode:
+                        with st.expander("Error Details"):
+                            st.code(traceback.format_exc())
+
+        # Display results if data exists
+        if st.session_state.dataframe_result is not None and not st.session_state.dataframe_result.empty:
+            # Show results in tabs
+            tab1, tab2 = st.tabs(["📊 Data", "📈 Analysis"])
+            
+            with tab1:
+                st.markdown("### Comments Data")
+                
+                # Filter options
+                filter_options = st.multiselect(
+                    "Filter comments by:",
+                    ["Has Media", "Has Links", "Has Mentions"],
+                    default=[]
+                )
+                
+                filtered_df = st.session_state.dataframe_result.copy()
+                
+                # Apply filters
+                if "Has Media" in filter_options:
+                    filtered_df = filtered_df[filtered_df["Comment Content"].str.contains(r'pic.twitter.com|video.twimg.com', na=False)]
+                if "Has Links" in filter_options:
+                    filtered_df = filtered_df[filtered_df["Comment Content"].str.contains(r'https?://', na=False)]
+                if "Has Mentions" in filter_options:
+                    filtered_df = filtered_df[filtered_df["Comment Content"].str.contains(r'@\w+', na=False)]
+                
+                # Display dataframe
+                st.dataframe(
+                    filtered_df,
+                    use_container_width=True,
+                    hide_index=True
+                )
+                
+                # Download options
+                col1, col2 = st.columns(2)
+                with col1:
+                    csv = filtered_df.to_csv(index=False)
+                    st.download_button(
+                        "Download as CSV",
+                        csv,
+                        "x_comments.csv",
+                        "text/csv",
+                        use_container_width=True
+                    )
+                with col2:
+                    buffer = BytesIO()
+                    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                        filtered_df.to_excel(writer, sheet_name='Comments', index=False)
+                    excel_data = buffer.getvalue()
+                    st.download_button(
+                        "Download as Excel",
+                        excel_data,
+                        "x_comments.xlsx",
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        use_container_width=True
+                    )
+            
+            with tab2:
+                # Summary metrics
+                total_comments = len(st.session_state.dataframe_result)
+                unique_users = len(st.session_state.dataframe_result['Username'].unique())
+                avg_length = st.session_state.dataframe_result['Comment Content'].str.len().mean()
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Total Comments", total_comments)
+                with col2:
+                    st.metric("Unique Users", unique_users)
+                with col3:
+                    st.metric("Avg. Comment Length", f"{avg_length:.0f}")
+                
+                # Visualizations
+                viz_tabs = st.tabs(["Time Distribution", "User Activity"])
+                
+                with viz_tabs[0]:
+                    if 'Timestamp' in st.session_state.dataframe_result.columns:
+                        # Convert timestamp to datetime if it's not already
+                        df_time = st.session_state.dataframe_result.copy()
+                        df_time['Timestamp'] = pd.to_datetime(df_time['Timestamp'])
+                        
+                        # Create hourly distribution
+                        df_time['Hour'] = df_time['Timestamp'].dt.hour
+                        hour_counts = df_time['Hour'].value_counts().sort_index()
+                        
+                        fig = px.bar(
+                            x=hour_counts.index,
+                            y=hour_counts.values,
+                            title="Comment Distribution by Hour",
+                            labels={'x': 'Hour of Day', 'y': 'Number of Comments'},
+                            color_discrete_sequence=px.colors.qualitative.Set3
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.info("No timestamp data available.")
+                
+                with viz_tabs[1]:
+                    # Top users by comment count
+                    user_counts = st.session_state.dataframe_result['Username'].value_counts().head(10)
+                    fig = px.bar(
+                        x=user_counts.index,
+                        y=user_counts.values,
+                        title="Top 10 Most Active Users",
+                        labels={'x': 'Username', 'y': 'Number of Comments'},
+                        color_discrete_sequence=px.colors.qualitative.Set3
+                    )
+                    fig.update_layout(xaxis_tickangle=-45)
+                    st.plotly_chart(fig, use_container_width=True)
+                    
+        elif st.session_state.dataframe_result is not None and st.session_state.dataframe_result.empty:
+            st.warning("No comments found for this post. Please check if the post exists and has comments.")
+            st.session_state.dataframe_result = None  # Reset the state
 # Help section
 with st.expander("ℹ️ How to Use"):
     st.markdown(f"""
