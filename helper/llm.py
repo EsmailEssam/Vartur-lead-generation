@@ -27,7 +27,8 @@ def evaluate_lead(info, user_comment, platform):
         elif platform == 'Instagram':
             user_message = f"Post Content: {info}\nComment: {user_comment}"
         elif platform == 'X':
-            pass
+            user_message = f"Post Content: {info}\nComment: {user_comment}"
+
         
         messages = [
             {

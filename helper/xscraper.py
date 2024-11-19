@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 import re
+from .llm import evaluate_lead
 
 class XLoginError(Exception):
     """Custom exception for X login errors"""
@@ -138,16 +139,16 @@ class XScraper:
                 content = comment.find('div', {'data-testid': 'tweetText'})
                 content_text = content.get_text() if content else ""
                 
-                # Extract timestamp and link
-                timestamp = comment.find('time')
                 link = f"https://X.com/{username}/status/{comment['data-tweet-id']}" if 'data-tweet-id' in comment.attrs else "N/A"
-                
+                is_lead, reason = evaluate_lead(content, content_text, platform='X')
                 data.append({
                     'Name': name,
                     'Username': username,
                     'Profile Link':f"https://x.com/{username}",
                     'Comment Content': content_text,
-                    'Link': link
+                    'Link': link,
+                    "Is Lead": is_lead,
+                    "Reason": reason,
                 })
                 
             except Exception as e:
