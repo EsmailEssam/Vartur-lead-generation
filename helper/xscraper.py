@@ -145,8 +145,8 @@ class XScraper:
                 data.append({
                     'Name': name,
                     'Username': username,
+                    'Profile Link':f"https://x.com/{username}",
                     'Comment Content': content_text,
-                    'Timestamp': timestamp['datetime'] if timestamp else "N/A",
                     'Link': link
                 })
                 

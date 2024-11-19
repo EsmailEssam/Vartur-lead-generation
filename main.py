@@ -163,7 +163,7 @@ if lead_filter == "LinkedIn":
                         st.session_state['email'],
                         st.session_state['password'],
                         is_headless=not st.session_state.debug_mode
-                    ).scrap()
+                    ).scrape()
                     
                     progress_bar.progress(100)
                     status_text.text("Processing complete!")
@@ -298,7 +298,7 @@ elif lead_filter == "Instagram":
                         st.session_state['email'],
                         st.session_state['password'],
                         headless=not st.session_state.debug_mode
-                    ).scrap()
+                    ).scrape()
                     
                     progress_bar.progress(100)
                     status_text.text("Processing complete!")

@@ -230,7 +230,7 @@ class InstagramScraper:
 
     
     ######################################## Main scraping function ########################################
-    def scrap(self):
+    def scrape(self):
         """
         Main function to scrape Instagram post and comments.
         
