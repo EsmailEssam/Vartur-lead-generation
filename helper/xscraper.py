@@ -118,6 +118,18 @@ class XScraper:
             last_height = new_height
             scrolls += 1
 
+    def _get_tweet_content(self):
+        """Extract just the main tweet text content"""
+        try:
+            main_tweet = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, 'article[data-testid="tweet"]'))
+            )
+            content = main_tweet.find_element(By.CSS_SELECTOR, 'div[data-testid="tweetText"]')
+            return content.text if content else ""
+        except Exception as e:
+            print(f"Error extracting tweet content: {str(e)}")
+            return ""
+          
     def _extract_comments(self):
         """Extract comments data from the post"""
         soup = BeautifulSoup(self.driver.page_source, 'html.parser')
@@ -138,15 +150,15 @@ class XScraper:
                 # Extract comment content
                 content = comment.find('div', {'data-testid': 'tweetText'})
                 content_text = content.get_text() if content else ""
-                
-                link = f"https://X.com/{username}/status/{comment['data-tweet-id']}" if 'data-tweet-id' in comment.attrs else "N/A"
-                is_lead, reason = evaluate_lead(content, content_text, platform='X')
+                tweet_content = self._get_tweet_content()
+
+                is_lead, reason = evaluate_lead(tweet_content, content_text, platform='X')
                 data.append({
                     'Name': name,
                     'Username': username,
                     'Profile Link':f"https://x.com/{username}",
+                    'tweet_content': tweet_content,
                     'Comment Content': content_text,
-                    'Link': link,
                     "Is Lead": is_lead,
                     "Reason": reason,
                 })
