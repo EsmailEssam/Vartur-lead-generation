@@ -23,6 +23,7 @@ class XScraper:
         self.email = email
         self.password = password
         self.driver = self._initialize_driver(is_headless)
+        self.main_post_content = None
         
     def _initialize_driver(self, is_headless):
         """Initialize undetected Chrome driver with specified options"""
@@ -95,6 +96,8 @@ class XScraper:
         """Navigate to the specific X post"""
         self.driver.get(self.url)
         time.sleep(5)
+        # Extract main post content immediately after navigation
+        self.main_post_content = self._get_tweet_content()
 
     def _scroll_to_load_comments(self):
         """Scroll down to load more comments"""
@@ -119,17 +122,21 @@ class XScraper:
             scrolls += 1
 
     def _get_tweet_content(self):
-        """Extract just the main tweet text content"""
+        """Extract the main tweet text content"""
         try:
+            # Wait for the main tweet to load
             main_tweet = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, 'article[data-testid="tweet"]'))
+                EC.presence_of_element_located((By.XPATH, "//article[@data-testid='tweet'][.//a[@aria-label='Profile Tweet time']]"))
             )
-            content = main_tweet.find_element(By.CSS_SELECTOR, 'div[data-testid="tweetText"]')
-            return content.text if content else ""
+            
+            # Extract the tweet text
+            content_element = main_tweet.find_element(By.CSS_SELECTOR, 'div[data-testid="tweetText"]')
+            return content_element.text if content_element else ""
+            
         except Exception as e:
-            print(f"Error extracting tweet content: {str(e)}")
+            print(f"Error extracting main tweet content: {str(e)}")
             return ""
-          
+
     def _extract_comments(self):
         """Extract comments data from the post"""
         soup = BeautifulSoup(self.driver.page_source, 'html.parser')
@@ -150,17 +157,22 @@ class XScraper:
                 # Extract comment content
                 content = comment.find('div', {'data-testid': 'tweetText'})
                 content_text = content.get_text() if content else ""
-                tweet_content = self._get_tweet_content()
 
-                is_lead, reason = evaluate_lead(tweet_content, content_text, platform='X')
+                # Evaluate if this comment is a lead using the main post content
+                is_lead, reason = evaluate_lead(
+                    info=self.main_post_content,
+                    user_comment=content_text,
+                    platform='X'
+                )
+
                 data.append({
                     'Name': name,
                     'Username': username,
-                    'Profile Link':f"https://x.com/{username}",
-                    'tweet_content': tweet_content,
+                    'Profile Link': f"https://x.com/{username}",
+                    'Post Content': self.main_post_content,
                     'Comment Content': content_text,
-                    "Is Lead": is_lead,
-                    "Reason": reason,
+                    'Is Lead': is_lead,
+                    'Reason': reason,
                 })
                 
             except Exception as e:
@@ -178,4 +190,3 @@ class XScraper:
             return self._extract_comments()
         finally:
             self.driver.quit()
-
