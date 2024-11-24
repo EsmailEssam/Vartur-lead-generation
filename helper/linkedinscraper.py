@@ -1,5 +1,3 @@
-import undetected_chromedriver as uc
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -11,24 +9,6 @@ import time
 
 from .config import init_driver, logger, LinkedInLoginError, InvalidCredentialsError
 from .llm import evaluate_lead
-
-def initialize_driver(is_headless=False):
-    """Initialize undetected Chrome driver with specified options"""
-    options = uc.ChromeOptions()
-    
-    if is_headless:
-        options.add_argument('--headless')
-    
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--window-size=1920,1080')
-    options.add_argument('--start-maximized')
-    options.add_argument('--disable-blink-features=AutomationControlled')
-    options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-    
-    logger.info("Initializing Chrome driver...")
-    return uc.Chrome(options=options)
 
 class LinkedInScraper:
     def __init__(self, url, email, password, is_headless):
@@ -129,7 +109,7 @@ class LinkedInScraper:
             try:
                 name = comment.find("span", class_="comments-comment-meta__description-title").text.strip()
                 header = comment.find("div", class_="comments-comment-meta__description-subtitle").text.strip()
-                link = comment.find("a", class_="app-aware-link")
+                link = comment.find("a", class_=lambda x: x and "tap-target" in x)
                 link = link["href"] if link else "N/A"
                 content = comment.find("span", class_="comments-comment-item__main-content").text.strip()
                 

@@ -3,37 +3,20 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
-from selenium import webdriver
-from selenium.webdriver.firefox.service import Service
-from webdriver_manager.firefox import GeckoDriverManager
-from selenium.webdriver.firefox.options import Options
-
 from bs4 import BeautifulSoup
 import pandas as pd
 import time
 import json
 
-from .config import logger, InstagramLoginError, InvalidCredentialsError
+from .config import init_driver, logger, InstagramLoginError, InvalidCredentialsError
 from .llm import evaluate_lead
 
-def initialize_driver(is_headless=True):
-    # Setup WebDriver options
-    options = Options()
-    
-    if is_headless:
-        options.add_argument('--headless')
-    
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    return webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=options)
-
 class InstagramScraper:
-    def __init__(self, url, email, password, headless):
+    def __init__(self, url, email, password, is_headless):
         self.url = url
         self.email = email
         self.password = password
-        self.driver = initialize_driver(headless)
-    
+        self.driver = init_driver(is_headless)
     
     ######################################## Login ########################################
     def _login(self):

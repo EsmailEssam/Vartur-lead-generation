@@ -7,44 +7,22 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 import re
+
+from .config import init_driver, logger, XLoginError, InvalidCredentialsError
 from .llm import evaluate_lead
-
-class XLoginError(Exception):
-    """Custom exception for X login errors"""
-    pass
-
-class InvalidCredentialsError(Exception):
-    """Custom exception for invalid credentials"""
-    pass
 
 class XScraper:
     def __init__(self, url, email, password, is_headless=False):
         self.url = url
         self.email = email
         self.password = password
-        self.driver = self._initialize_driver(is_headless)
+        self.driver = init_driver(is_headless)
         self.main_post_content = None
-        
-    def _initialize_driver(self, is_headless):
-        """Initialize undetected Chrome driver with specified options"""
-        options = uc.ChromeOptions()
-        
-        if is_headless:
-            options.add_argument('--headless')
-        
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        options.add_argument('--disable-gpu')
-        options.add_argument('--window-size=1920,1080')
-        options.add_argument('--start-maximized')
-        options.add_argument('--disable-blink-features=AutomationControlled')
-        options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-        
-        return uc.Chrome(options=options)
 
     def _login(self):
         """Perform login on X"""
         try:
+            logger.info("Navigating to X login page...")
             self.driver.get("https://X.com/i/flow/login")
             time.sleep(3)
 
@@ -53,10 +31,12 @@ class XScraper:
                 EC.presence_of_element_located((By.XPATH, "//input[@autocomplete='username']"))
             )
             email_field.send_keys(self.email)
+            logger.debug("Email entered.")
             
             # Click next
             next_button = self.driver.find_element(By.XPATH, "//span[text()='Next']")
             next_button.click()
+            logger.debug("Clicked next button.")
             time.sleep(2)
 
             # Handle possible username verification
@@ -67,15 +47,17 @@ class XScraper:
                 username_verify.send_keys(self.email.split('@')[0])
                 next_button = self.driver.find_element(By.XPATH, "//span[text()='Next']")
                 next_button.click()
+                logger.debug("Username verified.")
                 time.sleep(2)
             except TimeoutException:
-                pass
+                logger.info("Username verification step skipped.")
 
             # Enter password
             password_field = WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//input[@name='password']"))
             )
             password_field.send_keys(self.password)
+            logger.debug("Password entered.")
             
             # Click login
             login_button = self.driver.find_element(By.XPATH, "//span[text()='Log in']")
@@ -85,19 +67,25 @@ class XScraper:
             # Check for successful login
             if "login" in self.driver.current_url:
                 error_message = self.driver.find_element(By.XPATH, "//span[contains(@class, 'error-message')]").text
+                logger.error(f"Invalid credentials: {error_message}")
                 raise InvalidCredentialsError(error_message)
+            
+            logger.info("Login successful.")
 
         except TimeoutException:
+            logger.exception("Login process timeout.")
             raise XLoginError("Login process timeout")
         except Exception as e:
+            logger.exception(f"Login failed: {str(e)}")
             raise XLoginError(f"Login failed: {str(e)}")
 
     def _navigate_to_post(self):
         """Navigate to the specific X post"""
+        logger.info(f"Navigating to post: {self.url}")
         self.driver.get(self.url)
         time.sleep(5)
         # Extract main post content immediately after navigation
-        self.main_post_content = self._get_tweet_content()
+        self.main_post_content, self.main_username = self._get_tweet_content()
 
     def _scroll_to_load_comments(self):
         """Scroll down to load more comments"""
@@ -105,6 +93,8 @@ class XScraper:
         scroll_pause_time = 2
         max_scrolls = 50
         scrolls = 0
+        
+        logger.info("Beginning to scroll to load comments.")
 
         while scrolls < max_scrolls:
             # Scroll down
@@ -116,29 +106,56 @@ class XScraper:
             
             # Break if no more content loaded
             if new_height == last_height:
+                logger.info("No more content loaded, stopping scrolling.")
                 break
                 
             last_height = new_height
             scrolls += 1
+        
+        logger.info("Scrolling completed.")
 
     def _get_tweet_content(self):
         """Extract the main tweet text content"""
         try:
             # Wait for the main tweet to load
             main_tweet = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "//article[@data-testid='tweet'][.//a[@aria-label='Profile Tweet time']]"))
+                EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div/div/div[2]/main/div/div/div/div/div/section/div"))
             )
             
-            # Extract the tweet text
-            content_element = main_tweet.find_element(By.CSS_SELECTOR, 'div[data-testid="tweetText"]')
-            return content_element.text if content_element else ""
+            # Try multiple selectors
+            try:
+                content_element = main_tweet.find_element(
+                    By.XPATH,
+                    "/html/body/div[1]/div/div/div[2]/main/div/div/div/div/div/section/div/div/div[1]/div/div/article/div/div/div[3]/div[1]/div/div"
+                )
+                logger.info("Content extracted using first selector.")
+            except:
+                try:
+                    content_element = main_tweet.find_element(By.CSS_SELECTOR, '[data-testid="tweetText"]').text.strip()
+                    logger.info("Content extracted using second selector.")
+                except:
+                    content_element = ''
+            
+            try:
+                username_element = main_tweet.find_element(
+                    By.XPATH,
+                    "/html/body/div[1]/div/div/div[2]/main/div/div/div/div/div/section/div/div/div[1]/div/div/article/div/div/div[2]/div[2]/div/div/div[1]/div/div/div[2]/div/div/a/div/span"
+                )
+                logger.info("Unsername extracted.")
+            except:
+                username_element = ''
+            
+            # Return text if found
+            logger.info("Main tweet content extracted.")
+            return content_element.text, username_element.text[1:]
             
         except Exception as e:
-            print(f"Error extracting main tweet content: {str(e)}")
+            logger.exception(f"Error extracting main tweet content: {str(e)}")
             return ""
 
     def _extract_comments(self):
         """Extract comments data from the post"""
+        logger.info("Extracting comments from the post.")
         soup = BeautifulSoup(self.driver.page_source, 'html.parser')
         comments = soup.find_all('article', {'data-testid': 'tweet'})
         
@@ -155,8 +172,7 @@ class XScraper:
                 username = user_info.find('a', {'role': 'link'})['href'].strip('/')
                 
                 # Extract comment content
-                content = comment.find('div', {'data-testid': 'tweetText'})
-                content_text = content.get_text() if content else ""
+                content_text = comment.find("div", class_="css-146c3p1 r-8akbws r-krxsd3 r-dnmrzs r-1udh08x r-bcqeeo r-1ttztb7 r-qvutc0 r-1qd0xha r-a023e6 r-rjixqe r-16dba41 r-bnwqim").text.strip()
 
                 # Evaluate if this comment is a lead using the main post content
                 is_lead, reason = evaluate_lead(
@@ -164,25 +180,25 @@ class XScraper:
                     user_comment=content_text,
                     platform='X'
                 )
-
-                data.append({
-                    'Name': name,
-                    'Username': username,
-                    'Profile Link': f"https://x.com/{username}",
-                    'Post Content': self.main_post_content,
-                    'Comment Content': content_text,
-                    'Is Lead': is_lead,
-                    'Reason': reason,
-                })
+                if username != self.main_username:
+                    data.append({
+                        'Name': name,
+                        'Username': username,
+                        'Profile Link': f"https://x.com/{username}",
+                        'Comment Content': content_text,
+                        'Is Lead': is_lead,
+                        'Reason': reason,
+                    })
                 
             except Exception as e:
                 print(f"Error processing comment: {str(e)}")
                 continue
-                
+        logger.info("Comments extraction complete.")
         return pd.DataFrame(data)
 
     def scrape(self):
         """Main function to perform the scraping process"""
+        logger.info("Starting scraping process.")
         try:
             self._login()
             self._navigate_to_post()
@@ -190,3 +206,4 @@ class XScraper:
             return self._extract_comments()
         finally:
             self.driver.quit()
+            logger.info("Scraping process completed and browser closed.")

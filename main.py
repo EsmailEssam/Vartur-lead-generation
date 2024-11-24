@@ -273,60 +273,32 @@ class SocialMediaLeadsApp:
         total_entries = len(filtered_df)
         
         # Platform-specific metrics
-        if lead_filter in ['LinkedIn', 'Instagram']:
-            total_leads = len(filtered_df[filtered_df["Is Lead"] == "Lead"]) if "Is Lead" in filtered_df.columns else 0
-            lead_rate = (total_leads / total_entries * 100) if total_entries > 0 else 0
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Total Entries", total_entries)
-            with col2:
-                st.metric("Total Leads", total_leads)
-            with col3:
-                st.metric("Lead Rate", f"{lead_rate:.1f}%")
-            
-            # Visualizations
-            viz_tabs = st.tabs(["Lead Distribution", "Header Analysis"])
-            
-            with viz_tabs[0]:
-                if "Is Lead" in filtered_df.columns:
-                    fig = px.pie(
-                        filtered_df,
-                        names="Is Lead",
-                        title="Lead Distribution",
-                        color_discrete_sequence=px.colors.qualitative.Set3
-                    )
-                    st.plotly_chart(fig, use_container_width=True)
-                else:
-                    st.info("No lead classification data available.")
+        total_leads = len(filtered_df[filtered_df["Is Lead"] == "Lead"]) if "Is Lead" in filtered_df.columns else 0
+        lead_rate = (total_leads / total_entries * 100) if total_entries > 0 else 0
         
-        else:  # X platform
-            unique_users = len(filtered_df['Username'].unique())
-            avg_length = filtered_df['Comment Content'].str.len().mean()
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Total Comments", total_entries)
-            with col2:
-                st.metric("Unique Users", unique_users)
-            with col3:
-                st.metric("Avg. Comment Length", f"{avg_length:.0f}")
-            
-            # Visualizations
-            viz_tabs = st.tabs(["User Activity", "Comment Details"])
-            
-            with viz_tabs[0]:
-                # Top users by comment count
-                user_counts = filtered_df['Username'].value_counts().head(10)
-                fig = px.bar(
-                    x=user_counts.index,
-                    y=user_counts.values,
-                    title="Top 10 Most Active Users",
-                    labels={'x': 'Username', 'y': 'Number of Comments'},
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Total Entries", total_entries)
+        with col2:
+            st.metric("Total Leads", total_leads)
+        with col3:
+            st.metric("Lead Rate", f"{lead_rate:.1f}%")
+        
+        # Visualizations
+        viz_tabs = st.tabs(["Lead Distribution", "Header Analysis"])
+        
+        with viz_tabs[0]:
+            if "Is Lead" in filtered_df.columns:
+                fig = px.pie(
+                    filtered_df,
+                    names="Is Lead",
+                    title="Lead Distribution",
                     color_discrete_sequence=px.colors.qualitative.Set3
                 )
-                fig.update_layout(xaxis_tickangle=-45)
                 st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No lead classification data available.")
+        
 
     def run(self):
         """Main application runner"""
